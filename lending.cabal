@@ -1,0 +1,111 @@
+Cabal-Version:      2.4
+Name:               cerra-lending
+Version:            1.0.0.0
+Author:              cerra.io
+Maintainer:          admin@cerra.io
+Build-Type:          Simple
+Copyright:           © 2023 cerra
+License:             GPL-2.0-only
+License-files:
+
+common c
+  default-language: Haskell2010
+  default-extensions:
+    ExplicitForAll
+    ScopedTypeVariables
+    DeriveGeneric
+    StandaloneDeriving
+    DeriveLift
+    GeneralizedNewtypeDeriving
+    DeriveFunctor
+    DeriveFoldable
+    DeriveTraversable
+    LambdaCase
+    MultiParamTypeClasses
+    TypeOperators
+    FlexibleInstances
+    NamedFieldPuns
+    TypeFamilies
+    FlexibleContexts
+    DeriveAnyClass
+    DerivingStrategies
+    DerivingVia
+    DataKinds
+  ghc-options:
+    -Wall -Werror -Wmissing-export-lists -Wcompat
+    -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wmissing-deriving-strategies
+    -Wredundant-constraints -Widentities
+    -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+
+library
+  import: c
+  hs-source-dirs: src
+  exposed-modules:
+    Cerra.Lending.Contract.Lending.OnChain,
+    Cerra.Lending.Contract.Lending.Types,
+    Cerra.Lending.NFT.Factory.OnChain,
+    Cerra.Lending.NFT.Factory.Types,
+    Cerra.Lending.NFT.Borrower.OnChain,
+    Cerra.Lending.NFT.Borrower.Types,
+    Cerra.Lending.NFT.Lender.OnChain,
+    Cerra.Lending.NFT.Lender.Types,
+    Cerra.Lending.Utils.OnChainUtils,
+    Cerra.Lending.Utils.Utils,
+    Cerra.Lending.Utils.Debug
+  build-depends:
+      aeson
+    , base >=4.9 && <5
+    , base16-bytestring
+    , bytestring
+    , cardano-api
+    , cardano-ledger-alonzo
+    , containers
+    , directory >= 1.3.6.0
+    , freer-simple
+    , hex-text
+    , lens -any
+    , plutus-core
+    , plutus-ledger
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+    , plutus-script-utils
+    , pretty-show
+    , pretty-simple
+    , prettyprinter
+    , regex-tdfa ^>= 1.3.1.0
+    , req ^>= 3.9.0
+    , serialise
+    , template-haskell >= 2.16.0.0
+    , text
+    , uuid
+    , plutonomy
+    , generics-sop
+
+executable cli
+  import: c
+  hs-source-dirs: src/Cerra/Lending
+  main-is:        CLI.hs
+  ghc-options:    -threaded -rtsopts "-with-rtsopts=-T"
+  build-depends:
+      aeson
+    , base >=4.9 && <5
+    , base16-bytestring
+    , bytestring
+    , cardano-api
+    , cardano-ledger-alonzo
+    , directory
+    , directory >= 1.3.6.0
+    , ghc-prim
+    , cerra-lending
+    , plutus-core
+    , plutus-ledger
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+    , plutus-script-utils
+    , pretty-simple
+    , serialise
+    , template-haskell >= 2.16.0.0
+    , text
