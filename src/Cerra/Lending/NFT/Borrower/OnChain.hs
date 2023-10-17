@@ -65,9 +65,7 @@ import Cerra.Lending.Contract.Lending.Types
   )
 import Cerra.Lending.NFT.Borrower.Types (BorrowerParams (..))
 import Cerra.Lending.Utils.Utils
-  ( cerraAssetClass,
-    treasuryAddress,
-    getCS,
+  ( getCS,
     getTN,
     mkNftTokenName,
     getContractInput,
@@ -81,6 +79,10 @@ import Cerra.Lending.Utils.Utils
     getUpperBound,
     fromJustCustom,
     isUnity
+  )
+import Cerra.Lending.Utils.Settings
+  ( cerraAssetClass,
+    treasuryAddress
   )
 import Ledger.Value
   ( assetClass,

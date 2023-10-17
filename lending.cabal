@@ -52,6 +52,7 @@ library
     Cerra.Lending.NFT.Lender.Types,
     Cerra.Lending.Utils.OnChainUtils,
     Cerra.Lending.Utils.Utils,
+    Cerra.Lending.Utils.Settings,
     Cerra.Lending.Utils.Debug
   build-depends:
       aeson

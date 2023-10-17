@@ -67,10 +67,7 @@ import Cerra.Lending.NFT.Lender.Types
     OracleDatum (..)
   )
 import Cerra.Lending.Utils.Utils
-  ( cerraAssetClass,
-    oracleFactoryAssetClass,
-    treasuryAddress,
-    getCS,
+  ( getCS,
     getTN,
     mkNftTokenName,
     getContractInput,
@@ -90,6 +87,11 @@ import Cerra.Lending.Utils.Utils
     validateOutputAddress,
     fromJustCustom,
     isUnity
+  )
+import Cerra.Lending.Utils.Settings
+  ( cerraAssetClass,
+    oracleFactoryAssetClass,
+    treasuryAddress
   )
 import Ledger.Value (assetClass, flattenValue, AssetClass, unAssetClass, assetClassValueOf)
 import Ledger.Ada (getLovelace, fromValue)
