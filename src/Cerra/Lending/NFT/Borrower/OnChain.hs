@@ -53,7 +53,8 @@ import Cerra.Lending.Contract.Lending.Types
   ( LendingDatum
       ( scBorrowerNFT,
         scLenderNFT,
-        scOracleAddress,
+        scOracleAddressLoan,
+        scOracleAddressCollateral,
         scLoanAsset,
         scLoanAmount,
         scCollateralAsset,
@@ -98,7 +99,6 @@ import Cerra.Lending.Utils.OnChainUtils
 import qualified PlutusTx
 import PlutusTx.Prelude
   ( BuiltinData,
-    error,
     length,
     isNothing,
     Bool(..),
@@ -115,6 +115,8 @@ import PlutusTx.Prelude
   )
 
 import PlutusTx.Builtins (divideInteger, multiplyInteger)
+
+import Cerra.Lending.Utils.Debug (debugError)
 
 {-# INLINEABLE mkBorrowerScript #-}
 mkBorrowerScript :: Script
@@ -166,7 +168,7 @@ mkBorrowerValidator BorrowerParams { bTreasuryAddress, bCerraAssetClass } rawRed
 
         ownAssetClass = case [c | c <- (flattenValue mintValue), ownSymbol == getCS c] of
           [o] -> assetClass (getCS o) (getTN o)
-          _ -> error ()
+          _ -> debugError "E1" True
 
         borrowerTokenName = mkNftTokenName ref
 
@@ -196,28 +198,30 @@ validateMintAccept borrowerTokenName info =
         outValFlatten = flattenValue outVal
 
         !positionDatumIn = mustFindScriptDatum @LendingDatum contractInput info
-        borrowerNFTIn       = scBorrowerNFT positionDatumIn
-        lenderNFTIn         = scLenderNFT positionDatumIn
-        oracleAddressIn     = scOracleAddress positionDatumIn
-        loanAssetIn         = scLoanAsset positionDatumIn
-        loanAmountIn        = scLoanAmount positionDatumIn
-        collateralAssetIn   = scCollateralAsset positionDatumIn
-        collateralAmountIn  = scCollateralAmount positionDatumIn
-        loanStartTimeIn     = scLoanStartTime positionDatumIn
-        loanLengthIn        = scLoanLength positionDatumIn
-        interestPerSecondIn = scInterestPerSecond positionDatumIn
+        borrowerNFTIn             = scBorrowerNFT positionDatumIn
+        lenderNFTIn               = scLenderNFT positionDatumIn
+        oracleAddressLoanIn       = scOracleAddressLoan positionDatumIn
+        oracleAddressCollateralIn = scOracleAddressCollateral positionDatumIn
+        loanAssetIn               = scLoanAsset positionDatumIn
+        loanAmountIn              = scLoanAmount positionDatumIn
+        collateralAssetIn         = scCollateralAsset positionDatumIn
+        collateralAmountIn        = scCollateralAmount positionDatumIn
+        loanStartTimeIn           = scLoanStartTime positionDatumIn
+        loanLengthIn              = scLoanLength positionDatumIn
+        interestPerSecondIn       = scInterestPerSecond positionDatumIn
 
         !positionDatumOut = mustFindScriptDatum @LendingDatum scriptOutput info
-        borrowerNFTOut       = scBorrowerNFT positionDatumOut
-        lenderNFTOut         = scLenderNFT positionDatumOut
-        oracleAddressOut     = scOracleAddress positionDatumOut
-        loanAssetOut         = scLoanAsset positionDatumOut
-        loanAmountOut        = scLoanAmount positionDatumOut
-        collateralAssetOut   = scCollateralAsset positionDatumOut
-        collateralAmountOut  = scCollateralAmount positionDatumOut
-        loanStartTimeOut     = scLoanStartTime positionDatumOut
-        loanLengthOut        = scLoanLength positionDatumOut
-        interestPerSecondOut = scInterestPerSecond positionDatumOut
+        borrowerNFTOut             = scBorrowerNFT positionDatumOut
+        lenderNFTOut               = scLenderNFT positionDatumOut
+        oracleAddressLoanOut       = scOracleAddressLoan positionDatumOut
+        oracleAddressCollateralOut = scOracleAddressCollateral positionDatumOut
+        loanAssetOut               = scLoanAsset positionDatumOut
+        loanAmountOut              = scLoanAmount positionDatumOut
+        collateralAssetOut         = scCollateralAsset positionDatumOut
+        collateralAmountOut        = scCollateralAmount positionDatumOut
+        loanStartTimeOut           = scLoanStartTime positionDatumOut
+        loanLengthOut              = scLoanLength positionDatumOut
+        interestPerSecondOut       = scInterestPerSecond positionDatumOut
 
         !loanInInput = assetAmount loanAssetIn (assetClassValueOf inVal loanAssetIn)
         !lovelaceInInput = lovelaceAmount loanAssetIn inVal
@@ -235,7 +239,8 @@ validateMintAccept borrowerTokenName info =
          && isNothing borrowerNFTIn
          && (fromJustCustom borrowerNFTOut) == borrowerTokenName
          && fromJustCustom lenderNFTIn == fromJustCustom lenderNFTOut
-         && oracleAddressIn == oracleAddressOut
+         && oracleAddressLoanIn == oracleAddressLoanOut
+         && oracleAddressCollateralIn == oracleAddressCollateralOut
          && loanAssetIn == loanAssetOut
          && loanAmountIn == loanAmountOut
          && collateralAssetIn == collateralAssetOut
@@ -311,28 +316,30 @@ validateBurnRepay borrowerTokenName info =
         outValFlatten = flattenValue outVal
 
         !positionDatumIn = mustFindScriptDatum @LendingDatum contractInput info
-        borrowerNFTIn       = scBorrowerNFT positionDatumIn
-        lenderNFTIn         = scLenderNFT positionDatumIn
-        oracleAddressIn     = scOracleAddress positionDatumIn
-        loanAssetIn         = scLoanAsset positionDatumIn
-        loanAmountIn        = scLoanAmount positionDatumIn
-        collateralAssetIn   = scCollateralAsset positionDatumIn
-        collateralAmountIn  = scCollateralAmount positionDatumIn
-        loanStartTimeIn     = scLoanStartTime positionDatumIn
-        loanLengthIn        = scLoanLength positionDatumIn
-        interestPerSecondIn = scInterestPerSecond positionDatumIn
+        borrowerNFTIn             = scBorrowerNFT positionDatumIn
+        lenderNFTIn               = scLenderNFT positionDatumIn
+        oracleAddressLoanIn       = scOracleAddressLoan positionDatumIn
+        oracleAddressCollateralIn = scOracleAddressCollateral positionDatumIn
+        loanAssetIn               = scLoanAsset positionDatumIn
+        loanAmountIn              = scLoanAmount positionDatumIn
+        collateralAssetIn         = scCollateralAsset positionDatumIn
+        collateralAmountIn        = scCollateralAmount positionDatumIn
+        loanStartTimeIn           = scLoanStartTime positionDatumIn
+        loanLengthIn              = scLoanLength positionDatumIn
+        interestPerSecondIn       = scInterestPerSecond positionDatumIn
 
         !positionDatumOut = mustFindScriptDatum @LendingDatum scriptOutput info
-        borrowerNFTOut       = scBorrowerNFT positionDatumOut
-        lenderNFTOut         = scLenderNFT positionDatumOut
-        oracleAddressOut     = scOracleAddress positionDatumOut
-        loanAssetOut         = scLoanAsset positionDatumOut
-        loanAmountOut        = scLoanAmount positionDatumOut
-        collateralAssetOut   = scCollateralAsset positionDatumOut
-        collateralAmountOut  = scCollateralAmount positionDatumOut
-        loanStartTimeOut     = scLoanStartTime positionDatumOut
-        loanLengthOut        = scLoanLength positionDatumOut
-        interestPerSecondOut = scInterestPerSecond positionDatumOut
+        borrowerNFTOut             = scBorrowerNFT positionDatumOut
+        lenderNFTOut               = scLenderNFT positionDatumOut
+        oracleAddressLoanOut       = scOracleAddressLoan positionDatumOut
+        oracleAddressCollateralOut = scOracleAddressCollateral positionDatumOut
+        loanAssetOut               = scLoanAsset positionDatumOut
+        loanAmountOut              = scLoanAmount positionDatumOut
+        collateralAssetOut         = scCollateralAsset positionDatumOut
+        collateralAmountOut        = scCollateralAmount positionDatumOut
+        loanStartTimeOut           = scLoanStartTime positionDatumOut
+        loanLengthOut              = scLoanLength positionDatumOut
+        interestPerSecondOut       = scInterestPerSecond positionDatumOut
 
         !collateralInInput = assetAmount collateralAssetIn (assetClassValueOf inVal collateralAssetIn)
         !lovelaceInInput = lovelaceAmount collateralAssetIn inVal
@@ -359,7 +366,8 @@ validateBurnRepay borrowerTokenName info =
          && (fromJustCustom borrowerNFTIn) == borrowerTokenName
          && isNothing borrowerNFTOut
          && fromJustCustom lenderNFTIn == fromJustCustom lenderNFTOut
-         && oracleAddressIn == oracleAddressOut
+         && oracleAddressLoanIn == oracleAddressLoanOut
+         && oracleAddressCollateralIn == oracleAddressCollateralOut
          && loanAssetIn == loanAssetOut
          && loanAmountIn == loanAmountOut
          && collateralAssetIn == collateralAssetOut

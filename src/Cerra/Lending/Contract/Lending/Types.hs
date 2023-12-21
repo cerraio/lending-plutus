@@ -23,16 +23,17 @@ import qualified PlutusTx
 import qualified Prelude as Haskell
 
 data LendingDatum = LendingDatum
-  { scBorrowerNFT       :: Maybe TokenName,
-    scLenderNFT         :: Maybe TokenName,
-    scOracleAddress     :: Address,
-    scLoanAsset         :: AssetClass,
-    scLoanAmount        :: Integer,
-    scCollateralAsset   :: AssetClass,
-    scCollateralAmount  :: Integer,
-    scLoanStartTime     :: Maybe POSIXTime,
-    scLoanLength        :: Integer,
-    scInterestPerSecond :: Integer -- need to divide by 10^12, this way getting 12 decimal precision
+  { scBorrowerNFT               :: Maybe TokenName,
+    scLenderNFT                 :: Maybe TokenName,
+    scOracleAddressLoan         :: Address,
+    scOracleAddressCollateral   :: Address,
+    scLoanAsset                 :: AssetClass,
+    scLoanAmount                :: Integer,
+    scCollateralAsset           :: AssetClass,
+    scCollateralAmount          :: Integer,
+    scLoanStartTime             :: Maybe POSIXTime,
+    scLoanLength                :: Integer,
+    scInterestPerSecond         :: Integer -- need to divide by 10^12, this way getting 12 decimal precision
   }
   deriving stock (Haskell.Show)
 

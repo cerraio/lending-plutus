@@ -20,6 +20,8 @@ import qualified PlutusTx
 import PlutusTx.IsData.Class (UnsafeFromData)
 import PlutusTx.Prelude
 
+import Cerra.Lending.Utils.Debug (debugError)
+
 minusAsciiCode :: Integer
 minusAsciiCode = 45
 
@@ -32,8 +34,8 @@ mustFindScriptDatum o info = case txOutDatum o of
     OutputDatum dat -> PlutusTx.unsafeFromBuiltinData (getDatum dat)
     OutputDatumHash dh -> case findDatum dh info of
         Just (Datum dat) -> PlutusTx.unsafeFromBuiltinData dat
-        _ -> error ()
-    NoOutputDatum -> error ()
+        _ -> debugError "E8" True
+    NoOutputDatum -> debugError "E9" True
 
 {-# INLINEABLE mustFindScriptDatumRaw #-}
 mustFindScriptDatumRaw :: TxOut -> TxInfo -> Datum
@@ -41,8 +43,8 @@ mustFindScriptDatumRaw o info = case txOutDatum o of
     OutputDatum dat -> dat
     OutputDatumHash dh -> case findDatum dh info of
         Just (Datum dat) -> PlutusTx.unsafeFromBuiltinData dat
-        _ -> error ()
-    NoOutputDatum -> error ()
+        _ -> debugError "E10" True
+    NoOutputDatum -> debugError "E11" True
 
 {-# INLINEABLE scriptDatumExists #-}
 scriptDatumExists :: TxOut -> Bool
@@ -74,7 +76,7 @@ bsToInteger input = go 0 0
     go idx acc
       | idx == len = acc
       | idx == 0 && byte == minusAsciiCode = negate $ go (idx + 1) acc
-      | byte < zeroAsciiCode || byte > zeroAsciiCode + 9 = error ()
+      | byte < zeroAsciiCode || byte > zeroAsciiCode + 9 = debugError "E12" True
       | otherwise = go (idx + 1) (acc * 10 + (byte - zeroAsciiCode))
       where
         byte = indexByteString input idx

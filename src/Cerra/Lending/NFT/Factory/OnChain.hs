@@ -65,12 +65,13 @@ import PlutusTx.Prelude
     Maybe(..),
     Bool(..),
     length,
-    error,
     ($),
     (&&),
     (||),
     (==)
   )
+
+import Cerra.Lending.Utils.Debug (debugError)
 
 {-# INLINEABLE mkNftScript #-}
 mkNftScript :: Script
@@ -148,7 +149,7 @@ validateBurn info ownSymbol fValidatorHash fBorrowerSymbol fLenderSymbol =
 
         contractValidatorHash = case toValidatorHash (txOutAddress contractInput) of
             Just vh -> vh
-            _ -> error ()
+            _ -> debugError "E2" True
 
         !inVal = txOutValue contractInput
 

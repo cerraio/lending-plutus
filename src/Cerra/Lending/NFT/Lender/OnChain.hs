@@ -40,8 +40,12 @@ import Plutus.V2.Ledger.Api
     TxOutRef (TxOutRef),
     Address,
     txInfoValidRange,
-    POSIXTime (..)
+    TxOut,
+    Value,
+    POSIXTime(..),
+    getPOSIXTime
   )
+
 import Plutus.V2.Ledger.Contexts
   ( ownCurrencySymbol,
     spendsOutput,
@@ -52,7 +56,8 @@ import Cerra.Lending.Contract.Lending.Types
   ( LendingDatum
       ( scBorrowerNFT,
         scLenderNFT,
-        scOracleAddress,
+        scOracleAddressLoan,
+        scOracleAddressCollateral,
         scLoanAsset,
         scLoanAmount,
         scCollateralAsset,
@@ -62,10 +67,9 @@ import Cerra.Lending.Contract.Lending.Types
         scInterestPerSecond
       )
   )
-import Cerra.Lending.NFT.Lender.Types
-  ( LenderParams (..),
-    OracleDatum (..)
-  )
+import Cerra.Lending.NFT.Lender.Types (LenderParams (..))
+import Cerra.Lending.Oracle.Orcfax.OnChain (getOrcfaxPrice, isOrcfaxSupported)
+import Cerra.Lending.Oracle.Cerra.OnChain (getCerraPrice)
 import Cerra.Lending.Utils.Utils
   ( getCS,
     getTN,
@@ -82,16 +86,17 @@ import Cerra.Lending.Utils.Utils
     factoryNFTTwoCurrencies,
     validateFee,
     getLowerBound,
-    getUpperBound,
+    isNFTExists,
     factoryNFTUnknownState,
-    validateOutputAddress,
     fromJustCustom,
-    isUnity
+    isUnity,
+    getUpperBound
   )
 import Cerra.Lending.Utils.Settings
   ( cerraAssetClass,
     oracleFactoryAssetClass,
-    treasuryAddress
+    treasuryAddress,
+    oracleFactorySymbolOrcfax
   )
 import Ledger.Value (assetClass, flattenValue, AssetClass, unAssetClass, assetClassValueOf)
 import Ledger.Ada (getLovelace, fromValue)
@@ -100,27 +105,27 @@ import Cerra.Lending.Utils.OnChainUtils
     scriptDatumExists
   )
 import qualified PlutusTx
+import PlutusTx.Builtins (multiplyInteger, divideInteger)
 import PlutusTx.Prelude
   ( BuiltinData,
-    error,
+    BuiltinString,
     length,
     isNothing,
+    fst,
+    snd,
     Bool(..),
     ($),
     (&&),
     (==),
     (/=),
     (<),
-    (>),
     (!!),
     Bool,
     Integer,
-    (+),
-    (-),
-    snd
+    (+)
   )
 
-import PlutusTx.Builtins (divideInteger, multiplyInteger)
+import Cerra.Lending.Utils.Debug (debugError)
 
 {-# INLINEABLE mkLenderScript #-}
 mkLenderScript :: Script
@@ -134,7 +139,8 @@ originalLenderPolicyPlutonomy = Plutonomy.mkMintingPolicyScript ($$(PlutusTx.com
       LenderParams
         { lTreasuryAddress = treasuryAddress,
           lCerraAssetClass = cerraAssetClass,
-          lOracleFactoryAssetClass = oracleFactoryAssetClass
+          lOracleFactoryAssetClass = oracleFactoryAssetClass,
+          lOracleFactorySymbolOrcfax = oracleFactorySymbolOrcfax
         }
 
 {-# INLINEABLE originalLenderPolicy #-}
@@ -149,7 +155,7 @@ mkLenderSymbol = scriptCurrencySymbol originalLenderPolicy
 
 {-# INLINEABLE mkLenderValidator #-}
 mkLenderValidator :: LenderParams -> BuiltinData -> ScriptContext -> Bool
-mkLenderValidator LenderParams { lTreasuryAddress, lCerraAssetClass, lOracleFactoryAssetClass } rawRedeemer context =
+mkLenderValidator LenderParams { lTreasuryAddress, lCerraAssetClass, lOracleFactoryAssetClass, lOracleFactorySymbolOrcfax } rawRedeemer context =
     let ref@(TxOutRef refHash refIdx) = PlutusTx.unsafeFromBuiltinData @TxOutRef rawRedeemer
         info = scriptContextTxInfo context
         ownSymbol = ownCurrencySymbol context
@@ -165,7 +171,7 @@ mkLenderValidator LenderParams { lTreasuryAddress, lCerraAssetClass, lOracleFact
 
         ownAssetClass = case [c | c <- (flattenValue mintValue), ownSymbol == getCS c] of
           [o] -> assetClass (getCS o) (getTN o)
-          _ -> error ()
+          _ -> debugError "E3" True
 
         lenderTokenName = mkNftTokenName ref
 
@@ -175,7 +181,7 @@ mkLenderValidator LenderParams { lTreasuryAddress, lCerraAssetClass, lOracleFact
     in if isUnity mintValue lenderNFT && spendsOutput info refHash refIdx then
             if contractInputExists then validateMintAccept lenderTokenName info
             else validateMintInitial lenderTokenName lTreasuryAddress lCerraAssetClass info
-       else if assetClassValueOf mintValue ownAssetClass == -1 then validateBurn (snd $ unAssetClass $ ownAssetClass) lOracleFactoryAssetClass info
+       else if assetClassValueOf mintValue ownAssetClass == -1 then validateBurn (snd $ unAssetClass $ ownAssetClass) lOracleFactoryAssetClass lOracleFactorySymbolOrcfax info
        else False
 
 {-# INLINEABLE validateMintAccept #-}
@@ -193,28 +199,30 @@ validateMintAccept lenderTokenName info =
         outValFlatten = flattenValue outVal
 
         !positionDatumIn = mustFindScriptDatum @LendingDatum contractInput info
-        borrowerNFTIn       = scBorrowerNFT positionDatumIn
-        lenderNFTIn         = scLenderNFT positionDatumIn
-        oracleAddressIn     = scOracleAddress positionDatumIn
-        loanAssetIn         = scLoanAsset positionDatumIn
-        loanAmountIn        = scLoanAmount positionDatumIn
-        collateralAssetIn   = scCollateralAsset positionDatumIn
-        collateralAmountIn  = scCollateralAmount positionDatumIn
-        loanStartTimeIn     = scLoanStartTime positionDatumIn
-        loanLengthIn        = scLoanLength positionDatumIn
-        interestPerSecondIn = scInterestPerSecond positionDatumIn
+        borrowerNFTIn             = scBorrowerNFT positionDatumIn
+        lenderNFTIn               = scLenderNFT positionDatumIn
+        oracleAddressLoanIn       = scOracleAddressLoan positionDatumIn
+        oracleAddressCollateralIn = scOracleAddressCollateral positionDatumIn
+        loanAssetIn               = scLoanAsset positionDatumIn
+        loanAmountIn              = scLoanAmount positionDatumIn
+        collateralAssetIn         = scCollateralAsset positionDatumIn
+        collateralAmountIn        = scCollateralAmount positionDatumIn
+        loanStartTimeIn           = scLoanStartTime positionDatumIn
+        loanLengthIn              = scLoanLength positionDatumIn
+        interestPerSecondIn       = scInterestPerSecond positionDatumIn
 
         !positionDatumOut = mustFindScriptDatum @LendingDatum scriptOutput info
-        borrowerNFTOut       = scBorrowerNFT positionDatumOut
-        lenderNFTOut         = scLenderNFT positionDatumOut
-        oracleAddressOut     = scOracleAddress positionDatumOut
-        loanAssetOut         = scLoanAsset positionDatumOut
-        loanAmountOut        = scLoanAmount positionDatumOut
-        collateralAssetOut   = scCollateralAsset positionDatumOut
-        collateralAmountOut  = scCollateralAmount positionDatumOut
-        loanStartTimeOut     = scLoanStartTime positionDatumOut
-        loanLengthOut        = scLoanLength positionDatumOut
-        interestPerSecondOut = scInterestPerSecond positionDatumOut
+        borrowerNFTOut             = scBorrowerNFT positionDatumOut
+        lenderNFTOut               = scLenderNFT positionDatumOut
+        oracleAddressLoanOut       = scOracleAddressLoan positionDatumOut
+        oracleAddressCollateralOut = scOracleAddressCollateral positionDatumOut
+        loanAssetOut               = scLoanAsset positionDatumOut
+        loanAmountOut              = scLoanAmount positionDatumOut
+        collateralAssetOut         = scCollateralAsset positionDatumOut
+        collateralAmountOut        = scCollateralAmount positionDatumOut
+        loanStartTimeOut           = scLoanStartTime positionDatumOut
+        loanLengthOut              = scLoanLength positionDatumOut
+        interestPerSecondOut       = scInterestPerSecond positionDatumOut
 
         !collateralInInput = assetAmount collateralAssetIn (assetClassValueOf inVal collateralAssetIn)
         !lovelaceInInput = lovelaceAmount collateralAssetIn inVal
@@ -233,7 +241,8 @@ validateMintAccept lenderTokenName info =
          && isNothing lenderNFTIn
          && (fromJustCustom lenderNFTOut) == lenderTokenName
          && fromJustCustom borrowerNFTIn == fromJustCustom borrowerNFTOut
-         && oracleAddressIn == oracleAddressOut
+         && oracleAddressLoanIn == oracleAddressLoanOut
+         && oracleAddressCollateralIn == oracleAddressCollateralOut
          && loanAssetIn == loanAssetOut
          && loanAmountIn == loanAmountOut
          && collateralAssetIn == collateralAssetOut
@@ -296,8 +305,8 @@ validateMintInitial lenderTokenName lTreasuryAddress lCerraAssetClass info =
          else False
 
 {-# INLINEABLE validateBurn #-}
-validateBurn :: TokenName -> AssetClass -> TxInfo -> Bool
-validateBurn lenderTokenName lOracleFactoryAssetClass info =
+validateBurn :: TokenName -> AssetClass -> CurrencySymbol -> TxInfo -> Bool
+validateBurn lenderTokenName lOracleFactoryAssetClass lOracleFactorySymbolOrcfax info =
     let mintValue = txInfoMint info
         mintValFlatten = flattenValue mintValue
 
@@ -306,15 +315,14 @@ validateBurn lenderTokenName lOracleFactoryAssetClass info =
         inValFlatten = flattenValue inVal
 
         !positionDatumIn = mustFindScriptDatum @LendingDatum contractInput info
-        borrowerNFTIn       = scBorrowerNFT positionDatumIn
-        lenderNFTIn         = scLenderNFT positionDatumIn
-        oracleAddressIn     = scOracleAddress positionDatumIn
-        loanAssetIn         = scLoanAsset positionDatumIn
-        loanAmountIn        = scLoanAmount positionDatumIn
-        collateralAssetIn   = scCollateralAsset positionDatumIn
-        collateralAmountIn  = scCollateralAmount positionDatumIn
-        loanStartTimeIn     = scLoanStartTime positionDatumIn
-        loanLengthIn        = scLoanLength positionDatumIn
+        borrowerNFTIn             = scBorrowerNFT positionDatumIn
+        lenderNFTIn               = scLenderNFT positionDatumIn
+        loanAssetIn               = scLoanAsset positionDatumIn
+        loanAmountIn              = scLoanAmount positionDatumIn
+        collateralAssetIn         = scCollateralAsset positionDatumIn
+        collateralAmountIn        = scCollateralAmount positionDatumIn
+        loanStartTimeIn           = scLoanStartTime positionDatumIn
+        loanLengthIn              = scLoanLength positionDatumIn
 
         !nftInInput = factoryNFTUnknownState inValFlatten collateralAssetIn loanAssetIn
 
@@ -350,53 +358,47 @@ validateBurn lenderTokenName lOracleFactoryAssetClass info =
                else -- at this point, the only way to end the loan is to liquidate borrower with oracle
                  if oracleInputExists
                       then
-                        if isLoanCanBeLiquidated info txReferenceInputs lOracleFactoryAssetClass oracleAddressIn loanAssetIn loanAmountIn collateralAssetIn collateralAmountIn nowTime
+                        if isLoanCanBeLiquidated info txReferenceInputs lOracleFactoryAssetClass lOracleFactorySymbolOrcfax loanAssetIn loanAmountIn collateralAssetIn collateralAmountIn
                         && commonConditions then True else False
                       else False
 
--- TODO: we are using our own oracle utilizing reference inputs
--- TODO: we can easily add Orcfax ADA price feed using their reference input specifically for ADA (as other tokens are not yet realized on Orcfax side)
+{-# INLINEABLE getOracleData #-}
+getOracleData :: TxInfo -> TxOut -> Value -> AssetClass -> CurrencySymbol -> (Integer, (AssetClass, BuiltinString))
+getOracleData info input value cerraAsset orcfaxSymbol =
+  if assetClassValueOf value cerraAsset == 1
+  then getCerraPrice info input
+  else if isNFTExists (flattenValue value) orcfaxSymbol
+  then getOrcfaxPrice info input
+  else debugError "E4" True
+
+{-# INLINEABLE determinePriceBySide #-}
+determinePriceBySide :: AssetClass -> (Integer, (AssetClass, BuiltinString)) -> (Integer, (AssetClass, BuiltinString)) -> Integer
+determinePriceBySide asset oracleDataOne oracleDataTwo =
+  if asset == (fst (snd oracleDataOne)) && isOrcfaxSupported oracleDataOne asset
+  then fst oracleDataOne
+  else if asset == (fst (snd oracleDataTwo)) && isOrcfaxSupported oracleDataTwo asset
+  then fst oracleDataTwo
+  else debugError "E5" True
+
 {-# INLINEABLE isLoanCanBeLiquidated #-}
-isLoanCanBeLiquidated :: TxInfo -> [TxInInfo] -> AssetClass -> Address -> AssetClass -> Integer -> AssetClass -> Integer -> POSIXTime -> Bool
-isLoanCanBeLiquidated info txReferenceInputs lOracleFactoryAssetClass oracleAddress loanAsset loanAmount collateralAsset collateralAmount nowTime =
-    let oracleInputOne = validateOutputAddress (txInInfoResolved (txReferenceInputs !! 0)) oracleAddress
-        oracleInputTwo = validateOutputAddress (txInInfoResolved (txReferenceInputs !! 1)) oracleAddress
+isLoanCanBeLiquidated :: TxInfo -> [TxInInfo] -> AssetClass -> CurrencySymbol -> AssetClass -> Integer -> AssetClass -> Integer -> Bool
+isLoanCanBeLiquidated info txReferenceInputs lOracleFactoryAssetClass lOracleFactorySymbolOrcfax loanAsset loanAmount collateralAsset collateralAmount =
+    let oracleInputOne = txInInfoResolved (txReferenceInputs !! 0)
+        oracleInputTwo = txInInfoResolved (txReferenceInputs !! 1)
 
         oracleValueOne = txOutValue oracleInputOne
         oracleValueTwo = txOutValue oracleInputTwo
 
-        !oracleDatumOne = mustFindScriptDatum @OracleDatum oracleInputOne info
-        assetOne       = oAsset oracleDatumOne
-        updateTimeOne  = oUpdateTime oracleDatumOne
-        priceOne       = oPrice oracleDatumOne
+        oracleDataOne = getOracleData info oracleInputOne oracleValueOne lOracleFactoryAssetClass lOracleFactorySymbolOrcfax
+        oracleDataTwo = getOracleData info oracleInputTwo oracleValueTwo lOracleFactoryAssetClass lOracleFactorySymbolOrcfax
 
-        !oracleDatumTwo = mustFindScriptDatum @OracleDatum oracleInputTwo info
-        assetTwo       = oAsset oracleDatumTwo
-        updateTimeTwo  = oUpdateTime oracleDatumTwo
-        priceTwo       = oPrice oracleDatumTwo
-
-        lastDay = nowTime - 8_6400_000
-
-        loanAssetPrice = if loanAsset == assetOne
-          then priceOne
-          else if loanAsset == assetTwo
-          then priceTwo
-          else error ()
-
-        collateralAssetPrice = if collateralAsset == assetOne
-          then priceOne
-          else if collateralAsset == assetTwo
-          then priceTwo
-          else error ()
+        loanAssetPrice = determinePriceBySide loanAsset oracleDataOne oracleDataTwo
+        collateralAssetPrice = determinePriceBySide collateralAsset oracleDataOne oracleDataTwo
 
         loanAmountInUsd = multiplyInteger loanAmount loanAssetPrice
         collateralAmountInUsd = multiplyInteger (multiplyInteger collateralAmount collateralAssetPrice) 1000
 
         ratio = divideInteger collateralAmountInUsd loanAmountInUsd
 
-     in if updateTimeOne > lastDay
-           && updateTimeTwo > lastDay
-           && assetClassValueOf oracleValueOne lOracleFactoryAssetClass == 1
-           && assetClassValueOf oracleValueTwo lOracleFactoryAssetClass == 1
-           && ratio < 1_050
+     in if ratio < 1_050
         then True else False

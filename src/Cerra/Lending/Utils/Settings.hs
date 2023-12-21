@@ -18,11 +18,11 @@ import Text.Hex (Text, decodeHex)
 import PlutusTx.Prelude(Maybe(..), ($))
 
 cerraSymbol :: Text.Hex.Text
-cerraSymbol = "46f987f7ed1886ba771b077c3ed5bbf3df158f54e0e3fa88d3d1e46e"
+cerraSymbol = "4342a3d3c15545a592bf38294dc75c7a1dd3550388303e3a06f4416d"
 
 {-# INLINEABLE cerraName #-}
 cerraName :: TokenName
-cerraName = tokenName $ fromJust $ decodeHex "744345525241"
+cerraName = tokenName $ fromJust $ decodeHex "4345525241"
 
 {-# INLINEABLE cerraCurrencySymbol #-}
 cerraCurrencySymbol :: CurrencySymbol
@@ -33,7 +33,7 @@ cerraAssetClass :: AssetClass
 cerraAssetClass = assetClass cerraCurrencySymbol cerraName
 
 oracleFactory :: Text.Hex.Text
-oracleFactory = "089eb57344dcfa1d2d82749566f27aa5c072194d11a261d6e66f33cc"
+oracleFactory = "1900714de0db4461660063f854d62730966e5cf9e5a737506877cdda"
 
 {-# INLINEABLE oracleFactoryName #-}
 oracleFactoryName :: TokenName
@@ -47,9 +47,16 @@ oracleFactorySymbol = currencySymbol $ fromJust $ decodeHex oracleFactory
 oracleFactoryAssetClass :: AssetClass
 oracleFactoryAssetClass = assetClass oracleFactorySymbol oracleFactoryName
 
+oracleFactoryOrcfax :: Text.Hex.Text
+oracleFactoryOrcfax = "2cccc05192920ff1eb02bcfa7bb2a1fc5352ce58391d7ba3c66a555b"
+
+{-# INLINEABLE oracleFactorySymbolOrcfax #-}
+oracleFactorySymbolOrcfax :: CurrencySymbol
+oracleFactorySymbolOrcfax = currencySymbol $ fromJust $ decodeHex oracleFactoryOrcfax
+
 {-# INLINEABLE treasuryPubKeyHash #-}
 treasuryPubKeyHash :: PubKeyHash
-treasuryPubKeyHash = "ec0222eebabb0975456b44bc23dd9baf16bbec620ab4fd10b5dec5c9"
+treasuryPubKeyHash = "0b8303e11b20e0acdb40394c0e11e124625ce5f482aaa5c449daa2aa"
 
 {-# INLINEABLE treasuryPaymentPubKeyHash #-}
 treasuryPaymentPubKeyHash :: PaymentPubKeyHash

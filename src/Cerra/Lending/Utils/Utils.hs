@@ -47,8 +47,7 @@ import Ledger.Interval (Interval, UpperBound (..), LowerBound (..), Extended(Fin
 import Cerra.Lending.Utils.OnChainUtils (scriptDatumExists)
 import qualified PlutusTx.AssocMap as Map
 import PlutusTx.Prelude
-  ( error,
-    Bool(..),
+  ( Bool(..),
     Maybe(..),
     fst,
     (<>),
@@ -64,13 +63,15 @@ import PlutusTx.Prelude
     sha2_256
   )
 
+import Cerra.Lending.Utils.Debug (debugError)
+
 {-# INLINEABLE lendingNFTOf #-}
 lendingNFTOf :: Value -> CurrencySymbol -> AssetClass
 lendingNFTOf (Value v) nftSymbol = case Map.lookup nftSymbol v of
-  Nothing -> error ()
+  Nothing -> debugError "E13" True
   Just i -> case [o | o@(_, am) <- Map.toList i, am == 1] of
     [(tn, _)] -> assetClass nftSymbol tn
-    _ -> error ()
+    _ -> debugError "E14" True
 
 {-# INLINEABLE getCS #-}
 getCS :: (a, b, c) -> a
@@ -100,13 +101,13 @@ getContractInput info = txInInfoResolved contractInput
     contractInput :: TxInInfo
     !contractInput = case [i | i <- txInputs, scriptDatumExists (txInInfoResolved i)] of
       [i] -> i
-      _ -> error ()
+      _ -> debugError "E15" True
 
 {-# INLINABLE getValidateContractOutput #-}
 getValidateContractOutput :: TxInfo -> ValidatorHash -> TxOut
 getValidateContractOutput info vh = if (fromJustCustom $ toValidatorHash $ txOutAddress scOutput) == vh
   then scOutput
-  else error ()
+  else debugError "E16" True
   where
     txOutputs :: [TxOut]
     txOutputs = txInfoOutputs info
@@ -114,7 +115,7 @@ getValidateContractOutput info vh = if (fromJustCustom $ toValidatorHash $ txOut
     scOutput :: TxOut
     !scOutput = case [o | o <- txOutputs, scriptDatumExists o] of
       [o] -> o
-      _ -> error ()
+      _ -> debugError "E17" True
 
 {-# INLINABLE getContractOutput #-}
 getContractOutput :: TxInfo -> TxOut
@@ -126,7 +127,7 @@ getContractOutput info = contractOutput
     contractOutput :: TxOut
     !contractOutput = case [o | o <- txOutputs, scriptDatumExists o] of
       [o] -> o
-      _ -> error ()
+      _ -> debugError "E18" True
 
 {-# INLINABLE assetAmount #-}
 assetAmount :: AssetClass -> Integer -> Integer
@@ -166,12 +167,6 @@ assetLengthTwoCurrencies asset1 asset2 count = case (asset1 == adaCoin) || (asse
   True -> count + 1
   False -> count
 
-{-# INLINABLE validateOutputAddress #-}
-validateOutputAddress :: TxOut -> Address -> TxOut
-validateOutputAddress output address = case address == txOutAddress output of
-  True -> output
-  False -> error ()
-
 {-# INLINABLE factoryNFT #-}
 factoryNFT :: [(CurrencySymbol, TokenName, Integer)] -> AssetClass -> AssetClass
 factoryNFT flattenVal asset = case [c | c <- flattenVal,
@@ -179,7 +174,7 @@ factoryNFT flattenVal asset = case [c | c <- flattenVal,
   && fst (unAssetClass asset) /= getCS c
   && getAmount c == 1] of
     [c] -> assetClass (getCS c) (getTN c)
-    _ -> error ()
+    _ -> debugError "E19" True
 
 {-# INLINABLE factoryNFTTwoCurrencies #-}
 factoryNFTTwoCurrencies :: [(CurrencySymbol, TokenName, Integer)] -> AssetClass -> AssetClass -> AssetClass
@@ -189,7 +184,7 @@ factoryNFTTwoCurrencies flattenVal asset1 asset2 = case [c | c <- flattenVal,
   && fst (unAssetClass asset2) /= getCS c
   && getAmount c == 1] of
     [c] -> assetClass (getCS c) (getTN c)
-    _ -> error ()
+    _ -> debugError "E20" True
 
 {-# INLINABLE factoryNFTUnknownState #-}
 factoryNFTUnknownState :: [(CurrencySymbol, TokenName, Integer)] -> AssetClass -> AssetClass -> AssetClass
@@ -199,7 +194,7 @@ factoryNFTUnknownState flattenVal assetOne assetTwo = case [c | c <- flattenVal,
   && fst (unAssetClass assetTwo) /= getCS c
   && getAmount c == 1] of
     [c] -> assetClass (getCS c) (getTN c)
-    _ -> error ()
+    _ -> debugError "E21" True
 
 {-# INLINABLE isNFTExists #-}
 isNFTExists :: [(CurrencySymbol, TokenName, Integer)] -> CurrencySymbol -> Bool
@@ -220,7 +215,7 @@ isNFTBurned flattenVal symbol = case [c | c <- flattenVal,
 ownContractInput :: ScriptContext -> TxOut
 ownContractInput ctx = case findOwnInput ctx of
    Just txInInfo -> txInInfoResolved txInInfo
-   _ -> error ()
+   _ -> debugError "E22" True
 
 {-# INLINABLE ownContractOutput #-}
 ownContractOutput :: TxInfo -> Address -> TxOut
@@ -232,14 +227,14 @@ ownContractOutput info ownAddress = ownOutput
      ownOutput :: TxOut
      !ownOutput = case [o | o <- txOutputs, ownAddress == txOutAddress o] of
        [o] -> o
-       _ -> error ()
+       _ -> debugError "E23" True
 
 {-# INLINEABLE validateFee #-}
 validateFee :: Address -> Integer -> TxInfo -> Bool
 validateFee tAddress _ info =
     let treasuryVal = case [o | o <- txInfoOutputs info, tAddress == txOutAddress o] of
           [o] -> txOutValue o
-          _ -> error ()
+          _ -> debugError "E24" True
 
         treasuryLovelaceOut = getLovelace (fromValue treasuryVal)
 
@@ -250,19 +245,19 @@ validateFee tAddress _ info =
 getUpperBound :: Interval a -> a
 getUpperBound interval = case ivTo interval of
     UpperBound (Finite value) _isInclusive -> fromJust (Just value)
-    _ -> error ()
+    _ -> debugError "E25" True
 
 {-# INLINEABLE getLowerBound #-}
 getLowerBound :: Interval a -> a
 getLowerBound interval = case ivFrom interval of
     LowerBound (Finite value) _isInclusive -> fromJust (Just value)
-    _ -> error ()
+    _ -> debugError "E26" True
 
 {-# INLINEABLE fromJustCustom #-}
 fromJustCustom :: Maybe a -> a
 fromJustCustom a = case a of
     Just b -> b
-    _ -> error ()
+    _ -> debugError "E27" True
 
 {-# INLINEABLE unitValue #-}
 unitValue :: AssetClass -> Value
