@@ -15,12 +15,12 @@ When contract address and policy ids are manually built with compile command, it
 
 P2P lending smart contracts have been audited by Tweag.
 
-Audit finished on 2024-02-15
+Audit finished on 2024-02-15.
 
 tweag-audit-2024 folder contains:
 * test case suite
 * instructions how to run it
 * locked Cerra P2P lending smart contract version, which was audited
 
-tweag-report-2024 folder contains
+tweag-report-2024 folder contains:
 * Audit report
