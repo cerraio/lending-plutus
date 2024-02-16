@@ -1,0 +1,75 @@
+cabal-version: 3.4
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           audit
+version:        0.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      Audit
+      Audit.Attacks
+      Audit.Endpoints
+      Audit.Traces
+      Audit.Utils
+  other-modules:
+      Paths_audit
+  autogen-modules:
+      Paths_audit
+  hs-source-dirs:
+      src
+  default-extensions:
+      ImportQualifiedPost
+      NumericUnderscores
+      OverloadedStrings
+  ghc-options: -Wall -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+  build-depends:
+      base
+    , cerra-lending
+    , containers
+    , cooked-validators
+    , data-default
+    , optics-core
+    , plutus-ledger
+    , plutus-ledger-api
+    , plutus-script-utils
+    , plutus-tx
+    , plutus-tx-plugin
+    , prettyprinter
+    , tasty
+    , tasty-expected-failure
+    , tasty-hunit
+  default-language: Haskell2010
+
+executable audit
+  main-is: Main.hs
+  other-modules:
+      Paths_audit
+  autogen-modules:
+      Paths_audit
+  hs-source-dirs:
+      exe
+  default-extensions:
+      ImportQualifiedPost
+  ghc-options: -Wall
+  build-depends:
+      audit
+    , base
+    , cerra-lending
+    , containers
+    , cooked-validators
+    , data-default
+    , optics-core
+    , plutus-ledger
+    , plutus-ledger-api
+    , plutus-script-utils
+    , plutus-tx
+    , plutus-tx-plugin
+    , prettyprinter
+    , tasty
+    , tasty-expected-failure
+    , tasty-hunit
+  default-language: Haskell2010

@@ -1,0 +1,48 @@
+verbatim:
+  cabal-version: 3.4
+
+name: cerra-lending
+version: 1.0.0.0
+
+dependencies:
+  - base
+  - base16-bytestring
+  - bytestring
+  - hex-text
+  - plutus-ledger
+  - plutus-ledger-api
+  - plutus-script-utils
+  - plutus-tx
+  - plutus-tx-plugin
+  - serialise
+  - text
+
+library:
+  source-dirs: src
+  ghc-options:
+    -Wall -Wmissing-export-lists -Wcompat
+    -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wmissing-deriving-strategies
+    -Wredundant-constraints -Widentities
+    -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+  default-extensions:
+    - ExplicitForAll
+    - ScopedTypeVariables
+    - DeriveGeneric
+    - StandaloneDeriving
+    - DeriveLift
+    - GeneralizedNewtypeDeriving
+    - DeriveFunctor
+    - DeriveFoldable
+    - DeriveTraversable
+    - LambdaCase
+    - MultiParamTypeClasses
+    - TypeOperators
+    - FlexibleInstances
+    - NamedFieldPuns
+    - TypeFamilies
+    - FlexibleContexts
+    - DeriveAnyClass
+    - DerivingStrategies
+    - DerivingVia
+    - DataKinds  

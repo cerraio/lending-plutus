@@ -1,0 +1,13 @@
+cradle:
+  cabal:
+    - path: "audit/src"
+      component: "lib:audit"
+
+    - path: "audit/exe/Main.hs"
+      component: "audit:exe:audit"
+
+    - path: "cerra-lending/src"
+      component: "lib:cerra-lending"
+
+    - path: "cerra-lending/src/Cerra/Lending/CLI.hs"
+      component: "cerra-lending:exe:cli"

@@ -1,0 +1,150 @@
+packages: audit cerra-lending
+
+source-repository-package
+  type: git
+  location: https://github.com/tweag/cooked-validators
+  tag: 57069feaf9df97d4189425b2029b8d3e8e6a5de0
+
+package cardano-crypto-praos
+  flags: -external-libsodium-vrf
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/plutus-apps.git
+  tag: 4578282f2f66c62a5f451701eca2f8f7d9d77c13
+  subdir:
+    cardano-node-emulator
+    cardano-streaming
+    freer-extras
+    marconi-chain-index
+    marconi-core
+    pab-blockfrost
+    plutus-chain-index
+    plutus-chain-index-core
+    plutus-contract
+    plutus-ledger
+    plutus-script-utils
+    plutus-tx-constraints
+
+repository cardano-haskell-packages
+  url: https://input-output-hk.github.io/cardano-haskell-packages
+  secure: True
+  root-keys:
+    3e0cce471cf09815f930210f7827266fd09045445d65923e6d0238a6cd15126f
+    443abb7fb497a134c343faf52f0b659bd7999bc06b7f63fa76dc99d631f9bea1
+    a86a1f6ce86c449c46666bda44268677abf29b5b2d2eb5ec7af903ec2f117a82
+    bcec67e8e99cabfa7764d75ad9b158d72bfacf70ca1d0ec8bc6b4406d1bf8413
+    c00aae8461a256275598500ea0e187588c35a5d5d7454fb57eac18d9edb86a56
+    d4a35cd3121aa00d18544bb0ac01c3e1691d618f462c46129271bccf39f7e8ee
+
+index-state: 2023-05-01T00:00:00Z
+
+index-state:
+  , hackage.haskell.org 2023-05-01T00:00:00Z
+  , cardano-haskell-packages 2023-05-01T00:00:00Z
+
+write-ghc-environment-files: never
+
+test-show-details: direct
+
+allow-newer:
+  , ekg:aeson
+  , ekg-json:aeson
+  , openapi3:aeson
+  , servant:aeson
+  , servant-client-core:aeson
+  , servant-server:aeson
+  , servant-foreign:lens
+  , blockfrost-api:lens
+
+constraints:
+  , protolude <0.3.1
+  , cardano-binary <1.5.0.1
+  , cardano-crypto-class >2.0.0.0
+  , algebraic-graphs <0.7
+  , cardano-crypto-class <2.0.0.1
+  , cardano-prelude <0.1.0.1
+  , io-classes <0.3.0.0
+  , typed-protocols==0.1.0.0
+  , aeson >= 2
+  , hedgehog >= 1.1
+  , ouroboros-consensus-protocol==0.1.0.1
+
+package plutus-ledger
+  haddock-options: "--optghc=-fplugin-opt PlutusTx.Plugin:defer-errors"
+package plutus-script-utils
+  haddock-options: "--optghc=-fplugin-opt PlutusTx.Plugin:defer-errors"
+package plutus-contract
+  haddock-options: "--optghc=-fplugin-opt PlutusTx.Plugin:defer-errors"
+
+package cardano-ledger-alonzo
+  optimization: False
+package ouroboros-consensus-shelley
+  optimization: False
+package ouroboros-consensus-cardano
+  optimization: False
+package cardano-api
+  optimization: False
+package cardano-wallet
+  optimization: False
+package cardano-wallet-core
+  optimization: False
+package cardano-wallet-cli
+  optimization: False
+package cardano-wallet-launcher
+  optimization: False
+package cardano-wallet-core-integration
+  optimization: False
+
+source-repository-package
+    type: git
+    location: https://github.com/input-output-hk/cardano-wallet
+    tag: 18a931648550246695c790578d4a55ee2f10463e
+    subdir:
+      lib/cli
+      lib/core
+      lib/core-integration
+      lib/dbvar
+      lib/launcher
+      lib/numeric
+      lib/shelley
+      lib/strict-non-empty-containers
+      lib/test-utils
+      lib/text-class
+
+source-repository-package
+    type: git
+    location: https://github.com/input-output-hk/cardano-addresses
+    tag: b7273a5d3c21f1a003595ebf1e1f79c28cd72513
+    subdir:
+      command-line
+      core
+
+source-repository-package
+    type: git
+    location: https://github.com/input-output-hk/cardano-ledger
+    tag: da3e9ae10cf9ef0b805a046c84745f06643583c2
+    subdir:
+      eras/alonzo/impl
+      eras/alonzo/test-suite
+      eras/babbage/impl
+      eras/babbage/test-suite
+      eras/byron/chain/executable-spec
+      eras/byron/crypto
+      eras/byron/crypto/test
+      eras/byron/ledger/executable-spec
+      eras/byron/ledger/impl
+      eras/byron/ledger/impl/test
+      eras/shelley/impl
+      eras/shelley/test-suite
+      eras/shelley-ma/impl
+      eras/shelley-ma/test-suite
+      libs/cardano-ledger-core
+      libs/cardano-ledger-pretty
+      libs/cardano-protocol-tpraos
+      libs/cardano-data
+      libs/vector-map
+      libs/set-algebra
+      libs/small-steps
+      libs/small-steps-test
+      libs/non-integral

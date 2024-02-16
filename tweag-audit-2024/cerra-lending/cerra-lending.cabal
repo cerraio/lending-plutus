@@ -1,0 +1,69 @@
+cabal-version: 3.4
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           cerra-lending
+version:        1.0.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      Cerra.Lending.Contract.Lending.OnChain
+      Cerra.Lending.Contract.Lending.Types
+      Cerra.Lending.NFT.Borrower.OnChain
+      Cerra.Lending.NFT.Borrower.Types
+      Cerra.Lending.NFT.Factory.OnChain
+      Cerra.Lending.NFT.Factory.Types
+      Cerra.Lending.NFT.Lender.OnChain
+      Cerra.Lending.NFT.Lender.Types
+      Cerra.Lending.Oracle.Cerra.OnChain
+      Cerra.Lending.Oracle.Cerra.Types
+      Cerra.Lending.Oracle.Orcfax.OnChain
+      Cerra.Lending.Oracle.Orcfax.Types
+      Cerra.Lending.Utils.Debug
+      Cerra.Lending.Utils.OnChainUtils
+      Cerra.Lending.Utils.Settings
+      Cerra.Lending.Utils.Utils
+  other-modules:
+      Paths_cerra_lending
+  autogen-modules:
+      Paths_cerra_lending
+  hs-source-dirs:
+      src
+  default-extensions:
+      ExplicitForAll
+      ScopedTypeVariables
+      DeriveGeneric
+      StandaloneDeriving
+      DeriveLift
+      GeneralizedNewtypeDeriving
+      DeriveFunctor
+      DeriveFoldable
+      DeriveTraversable
+      LambdaCase
+      MultiParamTypeClasses
+      TypeOperators
+      FlexibleInstances
+      NamedFieldPuns
+      TypeFamilies
+      FlexibleContexts
+      DeriveAnyClass
+      DerivingStrategies
+      DerivingVia
+      DataKinds
+  ghc-options: -Wall -Wmissing-export-lists -Wcompat -Wnoncanonical-monad-instances -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-deriving-strategies -Wredundant-constraints -Widentities -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+  build-depends:
+      base
+    , base16-bytestring
+    , bytestring
+    , hex-text
+    , plutus-ledger
+    , plutus-ledger-api
+    , plutus-script-utils
+    , plutus-tx
+    , plutus-tx-plugin
+    , serialise
+    , text
+  default-language: Haskell2010
