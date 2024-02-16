@@ -76,6 +76,7 @@ import Cerra.Lending.Utils.Utils
     mkNftTokenName,
     getContractInput,
     getContractOutput,
+    getContinuingContractOutput,
     assetAmount,
     assetAmountTwoCurrencies,
     lovelaceAmount,
@@ -194,7 +195,7 @@ validateMintAccept lenderTokenName info =
         !inVal = txOutValue contractInput
         inValFlatten = flattenValue inVal
 
-        scriptOutput = getContractOutput info
+        scriptOutput = getContinuingContractOutput info contractInput
         !outVal = txOutValue scriptOutput
         outValFlatten = flattenValue outVal
 
@@ -248,7 +249,7 @@ validateMintAccept lenderTokenName info =
          && collateralAssetIn == collateralAssetOut
          && collateralAmountIn == collateralAmountOut
          && isNothing loanStartTimeIn
-         && getLowerBound (txInfoValidRange info) == fromJustCustom loanStartTimeOut
+         && getUpperBound (txInfoValidRange info) == fromJustCustom loanStartTimeOut
          && loanLengthIn == loanLengthOut
          && interestPerSecondIn == interestPerSecondOut
          && inputLength == 3
@@ -327,7 +328,7 @@ validateBurn lenderTokenName lOracleFactoryAssetClass lOracleFactorySymbolOrcfax
         !nftInInput = factoryNFTUnknownState inValFlatten collateralAssetIn loanAssetIn
 
         nowTime :: POSIXTime
-        nowTime = getUpperBound (txInfoValidRange info)
+        nowTime = getLowerBound (txInfoValidRange info)
 
         loanEndsAt :: POSIXTime
         loanEndsAt = POSIXTime ((getPOSIXTime (fromJustCustom loanStartTimeIn)) + (multiplyInteger loanLengthIn 1000))

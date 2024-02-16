@@ -71,6 +71,7 @@ import Cerra.Lending.Utils.Utils
     mkNftTokenName,
     getContractInput,
     getContractOutput,
+    getContinuingContractOutput,
     assetAmount,
     lovelaceAmount,
     assetLength,
@@ -193,7 +194,7 @@ validateMintAccept borrowerTokenName info =
         !inVal = txOutValue contractInput
         inValFlatten = flattenValue inVal
 
-        scriptOutput = getContractOutput info
+        scriptOutput = getContinuingContractOutput info contractInput
         !outVal = txOutValue scriptOutput
         outValFlatten = flattenValue outVal
 
@@ -311,7 +312,7 @@ validateBurnRepay borrowerTokenName info =
         !inVal = txOutValue contractInput
         inValFlatten = flattenValue inVal
 
-        scriptOutput = getContractOutput info
+        scriptOutput = getContinuingContractOutput info contractInput
         !outVal = txOutValue scriptOutput
         outValFlatten = flattenValue outVal
 

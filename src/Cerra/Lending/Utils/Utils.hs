@@ -129,6 +129,20 @@ getContractOutput info = contractOutput
       [o] -> o
       _ -> debugError "E18" True
 
+{-# INLINABLE getContinuingContractOutput #-}
+getContinuingContractOutput :: TxInfo -> TxOut -> TxOut
+getContinuingContractOutput info input = if (txOutAddress contractOutput) == (txOutAddress input)
+  then contractOutput
+  else debugError "E28" True
+  where
+    txOutputs :: [TxOut]
+    txOutputs = txInfoOutputs info
+
+    contractOutput :: TxOut
+    !contractOutput = case [o | o <- txOutputs, scriptDatumExists o] of
+      [o] -> o
+      _ -> debugError "E18" True
+
 {-# INLINABLE assetAmount #-}
 assetAmount :: AssetClass -> Integer -> Integer
 assetAmount asset amount = case asset == adaCoin of

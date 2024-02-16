@@ -24,3 +24,8 @@ tweag-audit-2024 folder contains:
 
 tweag-report-2024 folder contains:
 * Audit report
+
+## Exploit remediation 
+- all exploits, reported by Tweag, have been fixed
+- fixes can be found in the last commit of the repository
+- currently deployed smart contract version contains all the fixes, and is being used by [Cerra P2P lending app](https://app.cerra.io/)
