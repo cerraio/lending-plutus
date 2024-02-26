@@ -3,7 +3,7 @@ packages: audit cerra-lending
 source-repository-package
   type: git
   location: https://github.com/tweag/cooked-validators
-  tag: 57069feaf9df97d4189425b2029b8d3e8e6a5de0
+  tag: 84693ad125b63d737efa24b0e9c49f40d1d1c47b
 
 package cardano-crypto-praos
   flags: -external-libsodium-vrf
