@@ -302,6 +302,6 @@ validateTake
          && loanInInput == loanAmountIn
          && outputLength == 3
          && collateralInOutput == collateralAmountOut
-         && lovelaceInOutput == 2_000_000
+         && lovelaceInOutput == 5_000_000
         then True
         else False

@@ -252,10 +252,10 @@ validateMintAccept borrowerTokenName info =
          && interestPerSecondIn == interestPerSecondOut
          && inputLength == 3
          && loanInInput == loanAmountIn
-         && lovelaceInInput == 2_000_000
+         && lovelaceInInput == 5_000_000
          && outputLength == 3
          && collateralInOutput == collateralAmountOut
-         && lovelaceInOutput == 2_000_000
+         && lovelaceInOutput == 5_000_000
          then True
          else False
 
@@ -293,7 +293,7 @@ validateMintInit borrowerTokenName bTreasuryAddress bCerraAssetClass info =
            && outputLength == 3
            && collateralInOutput == collateralAmount
            && assetClassValueOf mintValue nftInOutput == 1
-           && lovelaceInOutput == 2_000_000
+           && lovelaceInOutput == 5_000_000
            &&
            (
              if validateFee bTreasuryAddress cerraInInput info then True
@@ -378,10 +378,10 @@ validateBurnRepay borrowerTokenName info =
          && interestPerSecondIn == interestPerSecondOut
          && inputLength == 3
          && collateralInInput == collateralAmountIn
-         && lovelaceInInput == 2_000_000
+         && lovelaceInInput == 5_000_000
          && outputLength == 3
          && loanInOutput == (loanAmountOut + interest)
-         && lovelaceInOutput == 2_000_000
+         && lovelaceInOutput == 5_000_000
          && nowTime <= loanEndsAt
          then True
          else False
@@ -417,6 +417,6 @@ validateBurnClose borrowerTokenName info =
            && inputLength == 3
            && collateralInInput == collateralAmountIn
            && assetClassValueOf mintValue nftInInput == -1
-           && lovelaceInInput == 2_000_000
+           && lovelaceInInput == 5_000_000
          then True
          else False

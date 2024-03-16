@@ -254,11 +254,11 @@ validateMintAccept lenderTokenName info =
          && interestPerSecondIn == interestPerSecondOut
          && inputLength == 3
          && collateralInInput == collateralAmountIn
-         && lovelaceInInput == 2_000_000
+         && lovelaceInInput == 5_000_000
          && outputLength == 4
          && loanInOutput == loanAmountOut
          && collateralInOutput == collateralAmountOut
-         && lovelaceInOutput == 4_000_000
+         && lovelaceInOutput == 10_000_000
          then True
          else False
 
@@ -296,7 +296,7 @@ validateMintInitial lenderTokenName lTreasuryAddress lCerraAssetClass info =
            && outputLength == 3
            && loanInOutput == loanAmount
            && assetClassValueOf mintValue nftInOutput == 1
-           && lovelaceInOutput == 2_000_000
+           && lovelaceInOutput == 5_000_000
            &&
            (
              if validateFee lTreasuryAddress cerraInInput info then True

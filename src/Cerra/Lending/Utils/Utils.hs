@@ -146,19 +146,19 @@ getContinuingContractOutput info input = if (txOutAddress contractOutput) == (tx
 {-# INLINABLE assetAmount #-}
 assetAmount :: AssetClass -> Integer -> Integer
 assetAmount asset amount = case asset == adaCoin of
-  True -> amount - 2_000_000
+  True -> amount - 5_000_000
   False -> amount
 
 {-# INLINABLE assetAmountTwoCurrencies #-}
 assetAmountTwoCurrencies :: AssetClass -> Integer -> Integer
 assetAmountTwoCurrencies asset amount = case asset == adaCoin of
-  True -> amount - 4_000_000
+  True -> amount - 10_000_000
   False -> amount
 
 {-# INLINABLE lovelaceAmount #-}
 lovelaceAmount :: AssetClass -> Value -> Integer
 lovelaceAmount asset val = case asset == adaCoin of
-  True -> 2_000_000
+  True -> 5_000_000
   False -> getLovelace (fromValue val)
 
 {-# INLINABLE lovelaceAmountTwoCurrencies #-}
